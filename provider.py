@@ -4,8 +4,6 @@ import tweepy
 import os
 import config
 
-from InstagramAPI import InstagramAPI
-
 
 def facebook_api():
 
@@ -58,10 +56,14 @@ def twitter_api():
 
 def instagram_api():
 
+    from InstagramAPI import InstagramAPI
+
     instagram_username= config.instagram_username
     instagram_password = config.instagram_password
-    InstagramAPI = InstagramAPI(instagram_username, instagram_password)
+    InstagramAPI = InstagramAPI.InstagramAPI(instagram_username, instagram_password)
     InstagramAPI.login()
+
+
 
 # twit = twitter_api()
 # face = facebook_api()
