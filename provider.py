@@ -4,6 +4,7 @@ import tweepy
 import os
 import config
 
+from InstagramAPI import InstagramAPI
 
 
 def facebook_api():
@@ -44,11 +45,24 @@ def twitter_api():
 
     api = tweepy.API(auth)
 
-    public_tweets = api.home_timeline()
-    for tweet in public_tweets:
-        print(tweet.text)
+    user = api.get_user('williamjgardner')
+    retweets = api.retweets_of_me(count=1)
+    status = api.get_status('888376794780401664')
+
+    print('Data for User: ' + user.screen_name)
+    print('Total Follower Count: ' + str(user.followers_count))
+    print(status.text)
+    # for retweet in retweets:
+    #     print(retweet)
 
 
+def instagram_api():
 
-twit = twitter_api()
+    instagram_username= config.instagram_username
+    instagram_password = config.instagram_password
+    InstagramAPI = InstagramAPI(instagram_username, instagram_password)
+    InstagramAPI.login()
+
+# twit = twitter_api()
 # face = facebook_api()
+insta = instagram_api()

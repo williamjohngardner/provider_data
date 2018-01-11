@@ -1,5 +1,6 @@
 facebook-sdk
 tweepy
+InstagramAPI
 requests
 os
 config
