@@ -1,0 +1,5 @@
+.envrc
+config.py
+__pycache__
+/Users/productnonproduct/Projects/provider_data/facebookenv
+*.pyc
