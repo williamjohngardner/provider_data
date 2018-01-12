@@ -4,19 +4,24 @@ import tweepy
 import os
 import config
 
+from InstagramAPI import InstagramAPI
+
+
+
 class SocialMediaPerformance:
 
     def __init__(self):
+        self.fb_user_access_token = config.fb_user_access_token
         self.twitter_consumer_key = config.twitter_consumer_key
         self.twitter_consumer_secret = config.twitter_consumer_secret
         self.twitter_access_token = config.twitter_access_token
         self.twitter_access_token_secret = config.twitter_access_token_secret
+        self.instagram_username= config.instagram_username
+        self.instagram_password = config.instagram_password
 
     def facebook_api(self):
 
-        fb_user_access_token = config.fb_user_access_token
-
-        graph = facebook.GraphAPI(access_token= fb_user_access_token)
+        graph = facebook.GraphAPI(access_token= self.fb_user_access_token)
 
         events = graph.request('/search?q=Poetry&type=event&limit=10000')
 
@@ -32,7 +37,7 @@ class SocialMediaPerformance:
         maybecount = event1['maybe_count']
         noreplycount = event1['noreply_count']
 
-        attenders = requests.get("https://graph.facebook.com/v2.7/"+eventid+"/attending?access_token="+fb_user_access_token+"&limit="+str(attenderscount))
+        attenders = requests.get("https://graph.facebook.com/v2.7/"+eventid+"/attending?access_token="+self.fb_user_access_token+"&limit="+str(attenderscount))
         attenders_json = attenders.json()
 
         print(attenders_json)
@@ -58,12 +63,7 @@ class SocialMediaPerformance:
 
     def instagram_api(self):
 
-        from InstagramAPI import InstagramAPI
-
-        instagram_username= config.instagram_username
-        instagram_password = config.instagram_password
-
-        api = InstagramAPI(instagram_username, instagram_password)
+        api = InstagramAPI(self.instagram_username, self.instagram_password)
         api.login() # login
         api.tagFeed("cat") # get media list by tag #cat
         media_id = api.LastJson # last response JSON
