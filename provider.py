@@ -3,14 +3,17 @@ import facebook
 import tweepy
 import os
 import config
+import datetime
 
 from InstagramAPI import InstagramAPI
+from transfer import Transfer
 
 
 
 class SocialMediaPerformance:
 
     def __init__(self):
+        self.dealer_code = config.dealer_code
         self.fb_user_access_token = config.fb_user_access_token
         self.twitter_consumer_key = config.twitter_consumer_key
         self.twitter_consumer_secret = config.twitter_consumer_secret
@@ -18,6 +21,13 @@ class SocialMediaPerformance:
         self.twitter_access_token_secret = config.twitter_access_token_secret
         self.instagram_username= config.instagram_username
         self.instagram_password = config.instagram_password
+
+    def todays_date(self):
+
+        now = datetime.datetime.now()
+        now = now.strftime("%m/%d/%Y")
+        return now
+
 
     def facebook_api(self):
 
@@ -51,14 +61,28 @@ class SocialMediaPerformance:
         api = tweepy.API(auth)
 
         user = api.get_user('williamjgardner')
-        retweets = api.retweets_of_me(count=1)
         status = api.get_status('888376794780401664')
+        dealer_code = user.screen_name
+        follower_count = str(user.followers_count)
+        total_posts = str(user.statuses_count) #need to figure out how to filter status count by specific day
+        total_reach = str(user.followers_count)
+        total_engagement = None
+        retweets = api.retweets_of_me()
+        total_advocacy = retweets.count
+        # a = 0
+        # for i in total_advocacy:
+        #     a += 1
+        #     print(i.index)
+        # print(str(a))
 
-        print('Data for User: ' + user.screen_name)
-        print('Total Follower Count: ' + str(user.followers_count))
-        print(status.text)
-        # for retweet in retweets:
-        #     print(retweet)
+        print('Dealer Code: ' + dealer_code)
+        print('Channel: Twitter')
+        print('Total Follower Count: ' + follower_count)
+        print('Total Posts: ' + total_posts)
+        print('Total Reach: ' + total_reach)
+        print('Total Engagement: TBD')
+        print('Total Advocacy: ' + str(total_advocacy))
+        print(dir(retweets))
 
 
     def instagram_api(self):
@@ -76,9 +100,12 @@ class SocialMediaPerformance:
         # tab_doc = {}'\t'{}'\t'{}'\t'{}'\n'.format()
         print('Total Fans: ' + str(total_fans))
 
-
-social = SocialMediaPerformance()
-social.twitter_api()
-# social.facebook_api()
-social.instagram_api()
-# social.document_output()
+if __name__ == "__main__":
+    social = SocialMediaPerformance()
+    print(social.todays_date())
+    social.twitter_api()
+    # social.facebook_api()
+    # social.instagram_api()
+    # social.document_output()
+    send = Transfer()
+    send.ftp()
