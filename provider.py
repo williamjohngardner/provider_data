@@ -22,6 +22,12 @@ class SocialMediaPerformance:
         self.instagram_username= config.instagram_username
         self.instagram_password = config.instagram_password
 
+    def date_strftime(self):
+
+        now = datetime.datetime.now()
+        now = now.strftime("%m-%d-%y")
+        return now
+
     def todays_date(self):
 
         now = datetime.datetime.now()
@@ -75,15 +81,16 @@ class SocialMediaPerformance:
         #     print(i.index)
         # print(str(a))
 
-        print('Dealer Code: ' + dealer_code)
-        print('Channel: Twitter')
-        print('Total Follower Count: ' + follower_count)
-        print('Total Posts: ' + total_posts)
-        print('Total Reach: ' + total_reach)
-        print('Total Engagement: TBD')
-        print('Total Advocacy: ' + str(total_advocacy))
-        print(dir(retweets))
+        # print('Dealer Code: ' + dealer_code)
+        # print('Channel: Twitter')
+        # print('Total Follower Count: ' + follower_count)
+        # print('Total Posts: ' + total_posts)
+        # print('Total Reach: ' + total_reach)
+        # print('Total Engagement: TBD')
+        # print('Total Advocacy: ' + str(total_advocacy))
+        # print(dir(retweets))
 
+        print('Dealer Code: ' + dealer_code + '\nChannel: Twitter\nTotal Follower Count: ' + follower_count + '\nTotal Posts: ' + total_posts + '\nTotal Reach: ' + total_reach + '\nTotal Engagement: TBD\nTotal Advocacy: ' + str(total_advocacy))
 
     def instagram_api(self):
 
@@ -94,11 +101,15 @@ class SocialMediaPerformance:
         api.like(media_id["ranked_items"][0]["pk"]) # like first media
         api.getUserFollowers(media_id["ranked_items"][0]["user"]["pk"]) # get first media owner followers
 
-    def document_output(self):
+    def social_activity_report(self):
 
-        total_fans = twitter_api.retweets
-        # tab_doc = {}'\t'{}'\t'{}'\t'{}'\n'.format()
-        print('Total Fans: ' + str(total_fans))
+        self.social_activity = None
+
+    def social_activity_report_output(self):
+
+        self.file_name = 'TDDSSocialActivityReport_' + social.date_strftime() + '.txt'
+        output = open(self.file_name, 'w')
+        return self.file_name
 
 if __name__ == "__main__":
     social = SocialMediaPerformance()
@@ -107,5 +118,6 @@ if __name__ == "__main__":
     # social.facebook_api()
     # social.instagram_api()
     # social.document_output()
-    send = Transfer()
-    send.ftp()
+    # send = Transfer()
+    # send.ftp()
+    print(social.social_activity_report_output())
