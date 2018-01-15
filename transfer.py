@@ -14,18 +14,14 @@ class Transfer:
 
         now = datetime.datetime.now()
         now = now.strftime("%m-%d-%y")
-        self.file = 'TDDSSocialActivityReport_' + now + '.txt'
-        return self.file
+        return now
 
     def ftp(self):
+        file_name = 'TDDSSocialActivityReport_' + self.date_strftime() + '.txt'
+        stor = 'STOR ' + file_name
+        # print(stor)
         session = ftplib.FTP(self.SERVER, self.USERNAME, self.PASSWORD)
-        file = open(self.file,'rb')                  # file to send
-        session.storbinary('STOR self.file', file)     # send the file
+        file = open(str(file_name),'rb')                  # file to send
+        session.storbinary(str(stor), file)     # send the file
         file.close()                                    # close file and FTP
         session.quit()
-
-
-
-send = Transfer()
-# send.ftp()
-# print(send.date_strftime())

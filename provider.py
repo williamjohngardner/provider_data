@@ -9,7 +9,6 @@ from InstagramAPI import InstagramAPI
 from transfer import Transfer
 
 
-
 class SocialMediaPerformance:
 
     def __init__(self):
@@ -22,11 +21,13 @@ class SocialMediaPerformance:
         self.instagram_username= config.instagram_username
         self.instagram_password = config.instagram_password
 
+
     def date_strftime(self):
 
         now = datetime.datetime.now()
         now = now.strftime("%m-%d-%y")
         return now
+
 
     def todays_date(self):
 
@@ -88,9 +89,13 @@ class SocialMediaPerformance:
         # print('Total Reach: ' + total_reach)
         # print('Total Engagement: TBD')
         # print('Total Advocacy: ' + str(total_advocacy))
-        # print(dir(retweets))
+        for key, value in retweets:
+            print(key, value)
+        print(dir(total_advocacy))
 
-        print('Dealer Code: ' + dealer_code + '\nChannel: Twitter\nTotal Follower Count: ' + follower_count + '\nTotal Posts: ' + total_posts + '\nTotal Reach: ' + total_reach + '\nTotal Engagement: TBD\nTotal Advocacy: ' + str(total_advocacy))
+        self.twitter_social_output = 'Dealer Code: ' + dealer_code + '\nChannel: Twitter\nTotal Follower Count: ' + follower_count + '\nTotal Posts: ' + total_posts + '\nTotal Reach: ' + total_reach + '\nTotal Engagement: TBD\nTotal Advocacy: ' + str(total_advocacy)
+        return self.twitter_social_output
+
 
     def instagram_api(self):
 
@@ -101,23 +106,30 @@ class SocialMediaPerformance:
         api.like(media_id["ranked_items"][0]["pk"]) # like first media
         api.getUserFollowers(media_id["ranked_items"][0]["user"]["pk"]) # get first media owner followers
 
+
     def social_activity_report(self):
 
-        self.social_activity = None
+        self.social_activity = self.twitter_api()
+        return self.social_activity
+
 
     def social_activity_report_output(self):
 
-        self.file_name = 'TDDSSocialActivityReport_' + social.date_strftime() + '.txt'
+        self.file_name = 'TDDSSocialActivityReport_' + self.date_strftime() + '.txt'
         output = open(self.file_name, 'w')
-        return self.file_name
+        output.write(str(self.social_activity_report()))
+        output.close()
+        # return self.file_name
+
 
 if __name__ == "__main__":
     social = SocialMediaPerformance()
     print(social.todays_date())
     social.twitter_api()
+    # social.social_activity_report()
     # social.facebook_api()
     # social.instagram_api()
-    # social.document_output()
+
+    # social.social_activity_report_output()
     # send = Transfer()
     # send.ftp()
-    print(social.social_activity_report_output())
