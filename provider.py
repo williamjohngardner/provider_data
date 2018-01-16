@@ -1,6 +1,6 @@
 import requests
 import facebook
-import tweepy
+import twitter
 import os
 import config
 import datetime
@@ -62,39 +62,45 @@ class SocialMediaPerformance:
 
     def twitter_api(self):
 
-        auth = tweepy.OAuthHandler(self.twitter_consumer_key, self.twitter_consumer_secret)
-        auth.set_access_token(self.twitter_access_token, self.twitter_access_token_secret)
+        api = twitter.Api(consumer_key=self.twitter_consumer_key,
+                          consumer_secret=self.twitter_consumer_secret,
+                          access_token_key=self.twitter_access_token,
+                          access_token_secret=self.twitter_access_token_secret)
 
-        api = tweepy.API(auth)
 
-        user = api.get_user('williamjgardner')
-        status = api.get_status('888376794780401664')
-        dealer_code = user.screen_name
-        follower_count = str(user.followers_count)
-        total_posts = str(user.statuses_count) #need to figure out how to filter status count by specific day
-        total_reach = str(user.followers_count)
-        total_engagement = None
-        retweets = api.retweets_of_me()
-        total_advocacy = retweets.count
-        # a = 0
-        # for i in total_advocacy:
-        #     a += 1
-        #     print(i.index)
-        # print(str(a))
+        user = api.GetUser('177189084')
+        follower_count = user.followers_count
+        total_posts = user.statuses_count #need to figure out how to filter status count by specific day
+        total_reach = user.followers_count
+        # total_engagement = None
+        statuses = api.GetUserTimeline('177189084')
+        retweets = api.GetRetweetsOfMe(count=100)
+        total_advocacy = len(retweets)
+        # total = []
+        # for index, item in enumerate(retweets, start = 1):
+        #     total.append(item)
+        #     total_advocacy = len(total)
+        #     return total_advocacy
 
-        # print('Dealer Code: ' + dealer_code)
-        # print('Channel: Twitter')
-        # print('Total Follower Count: ' + follower_count)
-        # print('Total Posts: ' + total_posts)
-        # print('Total Reach: ' + total_reach)
-        # print('Total Engagement: TBD')
-        # print('Total Advocacy: ' + str(total_advocacy))
-        for key, value in retweets:
-            print(key, value)
-        print(dir(total_advocacy))
 
-        self.twitter_social_output = 'Dealer Code: ' + dealer_code + '\nChannel: Twitter\nTotal Follower Count: ' + follower_count + '\nTotal Posts: ' + total_posts + '\nTotal Reach: ' + total_reach + '\nTotal Engagement: TBD\nTotal Advocacy: ' + str(total_advocacy)
-        return self.twitter_social_output
+        print(dir(retweets))
+        print('------------------------------------------')
+        print('Total Fans: ')
+        print(follower_count)
+        print('------------------------------------------')
+        print('Total Posts: ')
+        print(total_posts)
+        print('------------------------------------------')
+        print('Total Reach: ')
+        print(follower_count)
+        print('------------------------------------------')
+        print('Total Advocacy: ')
+        print(total_advocacy)
+        print('------------------------------------------')
+        # print('Retweets:')
+        # print(retweets)
+        # self.twitter_social_output = 'Dealer Code: ' + self.dealer_code + '\nChannel: Twitter\nTotal Follower Count: ' + follower_count + '\nTotal Posts: ' + total_posts + '\nTotal Reach: ' + total_reach + '\nTotal Engagement: TBD\nTotal Advocacy: ' + str(total_advocacy)
+        # return self.twitter_social_output
 
 
     def instagram_api(self):
@@ -125,7 +131,7 @@ class SocialMediaPerformance:
 if __name__ == "__main__":
     social = SocialMediaPerformance()
     print(social.todays_date())
-    social.twitter_api()
+    print(social.twitter_api())
     # social.social_activity_report()
     # social.facebook_api()
     # social.instagram_api()

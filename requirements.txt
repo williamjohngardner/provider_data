@@ -1,5 +1,5 @@
 facebook-sdk
-tweepy
+python-twitter
 InstagramAPI
 requests
 os
