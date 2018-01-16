@@ -18,6 +18,7 @@ class SocialMediaPerformance:
         self.twitter_consumer_secret = config.twitter_consumer_secret
         self.twitter_access_token = config.twitter_access_token
         self.twitter_access_token_secret = config.twitter_access_token_secret
+        self.twitter_user_id = config.twitter_user_id
         self.instagram_username= config.instagram_username
         self.instagram_password = config.instagram_password
 
@@ -67,40 +68,20 @@ class SocialMediaPerformance:
                           access_token_key=self.twitter_access_token,
                           access_token_secret=self.twitter_access_token_secret)
 
-
-        user = api.GetUser('177189084')
+        user = api.GetUser(self.twitter_user_id)
+        statuses = api.GetUserTimeline(self.twitter_user_id)
         follower_count = user.followers_count
-        total_posts = user.statuses_count #need to figure out how to filter status count by specific day
+        total_posts = user.statuses_count       #need to figure out how to filter status count by specific day
         total_reach = user.followers_count
-        # total_engagement = None
-        statuses = api.GetUserTimeline('177189084')
         retweets = api.GetRetweetsOfMe(count=100)
+        replies = api.GetReplies()
+        mentions = api.GetMentions()
+        favorites = api.GetFavorites()
+        total_engagement = len(replies) + len(retweets) + len(mentions) + len(favorites)
         total_advocacy = len(retweets)
-        # total = []
-        # for index, item in enumerate(retweets, start = 1):
-        #     total.append(item)
-        #     total_advocacy = len(total)
-        #     return total_advocacy
 
-
-        print(dir(retweets))
-        print('------------------------------------------')
-        print('Total Fans: ')
-        print(follower_count)
-        print('------------------------------------------')
-        print('Total Posts: ')
-        print(total_posts)
-        print('------------------------------------------')
-        print('Total Reach: ')
-        print(follower_count)
-        print('------------------------------------------')
-        print('Total Advocacy: ')
-        print(total_advocacy)
-        print('------------------------------------------')
-        # print('Retweets:')
-        # print(retweets)
-        # self.twitter_social_output = 'Dealer Code: ' + self.dealer_code + '\nChannel: Twitter\nTotal Follower Count: ' + follower_count + '\nTotal Posts: ' + total_posts + '\nTotal Reach: ' + total_reach + '\nTotal Engagement: TBD\nTotal Advocacy: ' + str(total_advocacy)
-        # return self.twitter_social_output
+        self.twitter_social_output = 'Dealer Code: \t' + str(self.dealer_code) + '\nChannel: \tTwitter\nTotal Follower Count: \t' + str(follower_count) + '\nTotal Posts: \t' + str(total_posts) + '\nTotal Reach: \t' + str(total_reach) + '\nTotal Engagement: \t' + str(total_engagement) + '\nTotal Advocacy: \t' + str(total_advocacy)
+        return self.twitter_social_output
 
 
     def instagram_api(self):
@@ -123,7 +104,7 @@ class SocialMediaPerformance:
 
         self.file_name = 'TDDSSocialActivityReport_' + self.date_strftime() + '.txt'
         output = open(self.file_name, 'w')
-        output.write(str(self.social_activity_report()))
+        output.write('Date: ' + str(self.todays_date()) + '\n' + str(self.social_activity_report()))
         output.close()
         # return self.file_name
 
@@ -131,11 +112,11 @@ class SocialMediaPerformance:
 if __name__ == "__main__":
     social = SocialMediaPerformance()
     print(social.todays_date())
-    print(social.twitter_api())
-    # social.social_activity_report()
+    social.twitter_api()
+    social.social_activity_report()
     # social.facebook_api()
     # social.instagram_api()
 
-    # social.social_activity_report_output()
-    # send = Transfer()
-    # send.ftp()
+    social.social_activity_report_output()
+    send = Transfer()
+    send.ftp()
