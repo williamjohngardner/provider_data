@@ -4,6 +4,7 @@ import twitter
 import os
 import config
 import datetime
+import json
 
 from InstagramAPI import InstagramAPI
 from transfer import Transfer
@@ -39,26 +40,46 @@ class SocialMediaPerformance:
 
     def facebook_api(self):
 
-        graph = facebook.GraphAPI(access_token= self.fb_user_access_token)
+        graph = facebook.GraphAPI(access_token= self.fb_user_access_token, version="2.7")
 
-        events = graph.request('/search?q=Poetry&type=event&limit=10000')
+        page = graph.get_object(id='419502714752257', fields='fan_count')
+        # print('Total Fan Count: ')
+        follower_count = page['fan_count']
 
-        eventList = events['data']
+        posts = graph.request('419502714752257/posts?fields=id&limit=100')
+        # print('Total Post Count: ')
+        total_posts = len(posts['data'])
 
-        eventid = eventList[1]['id']
+        page_impressions_organic = graph.request('419502714752257/insights/page_impressions_organic')
+        total_reach = page_impressions_organic['data'][0]['values'][0]['value']
+        # print('Total Reach: ')
+        # print(total_reach)
 
-        event1 = graph.get_object(id=eventid,
-         fields='attending_count,can_guests_invite,category,cover,declined_count,description,end_time,guest_list_enabled,interested_count,is_canceled,is_page_owned,is_viewer_admin,maybe_count,noreply_count,owner,parent_group,place,ticket_uri,timezone,type,updated_time')
-        attenderscount = event1['attending_count']
-        declinerscount = event1['declined_count']
-        interestedcount = event1['interested_count']
-        maybecount = event1['maybe_count']
-        noreplycount = event1['noreply_count']
+        page_consumptions = graph.request('419502714752257/insights/page_consumptions?date_preset=yesterday')
+        total_engagement = page_consumptions['data'][0]['values'][0]['value']
+        # print('Total Engagement: ')
+        # print(total_engagement)
 
-        attenders = requests.get("https://graph.facebook.com/v2.7/"+eventid+"/attending?access_token="+self.fb_user_access_token+"&limit="+str(attenderscount))
-        attenders_json = attenders.json()
+        # post_ids = posts['data']
+        # for i in post_ids:
+        #     share_ids = i['id']
+        #     for c in share_ids:
+        #         shares = graph.request(str(share_ids) + '?fields=shares.summary(true)')
+        #     shares_json = json.dumps(shares)
+        #     print(shares_json['id'])
+            # for j in shares_json:
+            #     if shares_json['shares']:
+            #         print(j)
+                    # total_shares += j['shares']['count']
+        # print('Total Shares: ')
+        # print(total_shares)
+            # for j in shares.keys():
+            #     if j == 'shares':
+            #         print(j)
+        total_advocacy = None
 
-        print(attenders_json)
+        self.facebook_social_output = 'Dealer Code: \t' + str(self.dealer_code) + '\nChannel: \tFacebook\nTotal Follower Count: \t' + str(follower_count) + '\nTotal Posts: \t' + str(total_posts) + '\nTotal Reach: \t' + str(total_reach) + '\nTotal Engagement: \t' + str(total_engagement) + '\nTotal Advocacy: \t' + str(total_advocacy)
+        return self.facebook_social_output
 
 
     def twitter_api(self):
@@ -73,6 +94,8 @@ class SocialMediaPerformance:
         follower_count = user.followers_count
         total_posts = user.statuses_count       #need to figure out how to filter status count by specific day
         total_reach = user.followers_count
+        # newest_retweet = api.GetRetweetsOfMe(count=1)
+        # tweet = newest_retweet.index('ScreenName')
         retweets = api.GetRetweetsOfMe(count=100)
         replies = api.GetReplies()
         mentions = api.GetMentions()
@@ -87,16 +110,30 @@ class SocialMediaPerformance:
     def instagram_api(self):
 
         api = InstagramAPI(self.instagram_username, self.instagram_password)
+
         api.login() # login
-        api.tagFeed("cat") # get media list by tag #cat
-        media_id = api.LastJson # last response JSON
-        api.like(media_id["ranked_items"][0]["pk"]) # like first media
-        api.getUserFollowers(media_id["ranked_items"][0]["user"]["pk"]) # get first media owner followers
+
+        username_id = api.username_id   #calls Instagram username ID
+        follower_count = len(api.getTotalSelfFollowers())   #returns the length of the list of total followers
+        total_posts = len(api.getTotalSelfUserFeed(username_id))    #returns the length of the list of total posts
+        total_reach = follower_count
+        total_comments = api.getTotalSelfUserFeed(username_id)
+        engagement_comments = 0
+        engagement_likes = 0
+        for comment in total_comments:
+            engagement_comments += comment['comment_count']
+            engagement_likes += comment['like_count']
+        total_engagement = engagement_comments + engagement_likes
+        total_advocacy = total_engagement
+
+        api.logout() #logout
+        self.instagram_social_output = 'Dealer Code: \t' + str(self.dealer_code) + '\nChannel: \tInstagram\nTotal Follower Count: \t' + str(follower_count) + '\nTotal Posts: \t' + str(total_posts) + '\nTotal Reach: \t' + str(total_reach) + '\nTotal Engagement: \t' + str(total_engagement) + '\nTotal Advocacy: \t' + str(total_advocacy)
+        return self.instagram_social_output
 
 
     def social_activity_report(self):
 
-        self.social_activity = self.twitter_api()
+        self.social_activity = str(self.facebook_api()) + '\n' + str(self.twitter_api())
         return self.social_activity
 
 
@@ -113,10 +150,10 @@ if __name__ == "__main__":
     social = SocialMediaPerformance()
     print(social.todays_date())
     social.twitter_api()
-    social.social_activity_report()
-    # social.facebook_api()
+    # social.social_activity_report()
+    social.facebook_api()
     # social.instagram_api()
 
     social.social_activity_report_output()
-    send = Transfer()
-    send.ftp()
+    # send = Transfer()
+    # send.ftp()
