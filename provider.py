@@ -5,9 +5,9 @@ import os
 import config
 import datetime
 import json
+import pprint
 
 from InstagramAPI import InstagramAPI
-from yelpapi import YelpAPI
 from transfer import Transfer
 
 
@@ -16,6 +16,7 @@ class SocialMediaPerformance:
     def __init__(self):
         self.dealer_code = config.dealer_code
         self.fb_user_access_token = config.fb_user_access_token
+        self.fb_dealer_id = config.fb_dealer_id
         self.twitter_consumer_key = config.twitter_consumer_key
         self.twitter_consumer_secret = config.twitter_consumer_secret
         self.twitter_access_token = config.twitter_access_token
@@ -25,6 +26,8 @@ class SocialMediaPerformance:
         self.instagram_password = config.instagram_password
         self.yelp_client_id = config.yelp_client_id
         self.yelp_client_secret = config.yelp_client_secret
+        self.yelp_username = config.yelp_username
+        self.yelp_password = config.yelp_password
 
     def date_strftime(self):
 
@@ -44,17 +47,21 @@ class SocialMediaPerformance:
 
         graph = facebook.GraphAPI(access_token= self.fb_user_access_token, version="2.7")
 
-        page = graph.get_object(id='419502714752257', fields='fan_count')
-        follower_count = page['fan_count']
-
-        posts = graph.request('419502714752257/posts?fields=id&limit=100')
-        total_posts = len(posts['data'])
-
-        page_impressions_organic = graph.request('419502714752257/insights/page_impressions_organic')
-        total_reach = page_impressions_organic['data'][0]['values'][0]['value']
-
-        page_consumptions = graph.request('419502714752257/insights/page_consumptions?date_preset=yesterday')
-        total_engagement = page_consumptions['data'][0]['values'][0]['value']
+        page = graph.get_object(id=self.fb_dealer_id)
+        print(page)
+        follower_count = graph.request('140202782671268/insights/page_fans')
+        print('Follower Count: ')
+        pprint.pprint(follower_count)
+        # posts = graph.request('939171412788689/posts?fields=id&limit=100')
+        # total_posts = len(posts['data'])
+        #
+        # page_impressions_organic = graph.request('939171412788689/insights/page_impressions_organic')
+        # # total_reach = page_impressions_organic['data'][0]['values'][0]['value']
+        #
+        page_consumptions = graph.request('140202782671268/insights/page_consumptions?date_preset=yesterday')
+        print('Total Engagement: ')
+        pprint.pprint(page_consumptions)
+        # total_engagement = page_consumptions['data'][0]['values'][0]['value']
 
         # post_ids = posts['data']
         # for i in post_ids:
@@ -74,8 +81,8 @@ class SocialMediaPerformance:
             #         print(j)
         total_advocacy = None
 
-        self.facebook_social_output = 'Dealer Code: \t' + str(self.dealer_code) + '\nChannel: \tFacebook\nTotal Follower Count: \t' + str(follower_count) + '\nTotal Posts: \t' + str(total_posts) + '\nTotal Reach: \t' + str(total_reach) + '\nTotal Engagement: \t' + str(total_engagement) + '\nTotal Advocacy: \t' + str(total_advocacy)
-        return self.facebook_social_output
+        # self.facebook_social_output = 'Dealer Code: \t' + str(self.dealer_code) + '\nChannel: \tFacebook\nTotal Follower Count: \t' + str(follower_count) + '\nTotal Posts: \t' + str(total_posts) + '\nTotal Reach: \t' + str(total_reach) + '\nTotal Engagement: \t' + str(total_engagement) + '\nTotal Advocacy: \t' + str(total_advocacy)
+        # return self.facebook_social_output
 
 
     def twitter_api(self):
@@ -127,17 +134,35 @@ class SocialMediaPerformance:
 
     def yelp_api(self):
 
-        api = YelpAPI(self.yelp_client_id, self.yelp_client_secret)
+        data = {'grant_type': 'client_credentials',
+                'client_id': self.yelp_client_id,
+                'client_secret': self.yelp_client_secret}
+        token = requests.post('https://api.yelp.com/oauth2/token', data=data)
+        access_token = token.json()['access_token']
+        url = 'https://api.yelp.com/v3/businesses/search'
+        url_reviews = 'https://api.yelp.com/v3/businesses/tustin-toyota-tustin/reviews'
+        url_business = 'https://api.yelp.com/v3/businesses/tustin-toyota-tustin-2'
+        headers = {'Authorization': 'bearer %s' % access_token}
+        params = {'location': 'Tustin',
+                  'term': 'Toyota',
+                  'sort_by': 'rating'
+                 }
 
-        average_rating = api.reviews_query(id=['tustin-toyota-tustin-2'])
-        print(average_rating)
+        resp = requests.get(url=url, params=params, headers=headers)
+        review_resp = requests.get(url=url_reviews, headers=headers)
+        business_resp = requests.get(url=url_business, headers=headers)
+
+        average_rating = resp.json()['businesses'][2]['rating']
+        review_times = review_resp.json()['reviews'][0]['time_created']
+        total_reviews = review_resp.json()['reviews'][0]
         total_positive = None
         total_negative = None
-        total_reviews = None
+        total_reviews = resp.json()['businesses'][2]['review_count']
         total_dealer_responses = None
 
-        # self.yelp_reputation_output = 'Dealer Code: \t' + str(self.dealer_code) + '\nChannel: \tYelp\nTotal Average Rating: \t' + str(average_rating) + '\nTotal Positive: \t' + str(total_positive) + '\nTotal Negative: \t' + str(total_negative) + '\nTotal Reviews: \t' + str(total_reviews) + '\nTotal Dealer Responses: \t' + str(total_dealer_responses)
-        # return self.yelp_reputation_output
+
+        self.yelp_reputation_output = 'Dealer Code: \t' + str(self.dealer_code) + '\nChannel: \tYelp\nTotal Average Rating: \t' + str(average_rating) + '\nTotal Positive: \t' + str(total_positive) + '\nTotal Negative: \t' + str(total_negative) + '\nTotal Reviews: \t' + str(total_reviews) + '\nTotal Dealer Responses: \t' + str(total_dealer_responses)
+        return self.yelp_reputation_output
 
 
     def social_activity_report(self):
@@ -163,9 +188,9 @@ class SocialMediaPerformance:
 
     def reputation_management_report_output(self):
 
-        self.file_name = '“TDDSRepManagementReport_' + self.date_strftime() + '.txt'
+        self.file_name = 'TDDSRepManagementReport_' + self.date_strftime() + '.txt'
         output = open(self.file_name, 'w')
-        output.write('Date: ' + str(self.todays_date()) + '\n' + str(self.social_activity_report()))
+        output.write('Date: ' + str(self.todays_date()) + '\n' + str(self.reputation_management_report()))
         output.close()
 
 
@@ -173,10 +198,12 @@ if __name__ == "__main__":
     social = SocialMediaPerformance()
     print(social.todays_date())
     # social.twitter_api()
-    # social.facebook_api()
+    print(social.facebook_api())
     # social.instagram_api()
     # social.yelp_api()
 
     # social.social_activity_report_output()
+    # social.reputation_management_report_output()
     # send = Transfer()
-    # send.ftp()
+    # send.ftp_social_report()
+    # send.ftp_reputation_report()
