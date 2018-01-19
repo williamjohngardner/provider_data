@@ -16,10 +16,18 @@ class Transfer:
         now = now.strftime("%m-%d-%y")
         return now
 
-    def ftp(self):
+    def ftp_social_report(self):
         file_name = 'TDDSSocialActivityReport_' + self.date_strftime() + '.txt'
         stor = 'STOR ' + file_name
-        # print(stor)
+        session = ftplib.FTP(self.SERVER, self.USERNAME, self.PASSWORD)
+        file = open(str(file_name),'rb')                  # file to send
+        session.storbinary(str(stor), file)     # send the file
+        file.close()                                    # close file and FTP
+        session.quit()
+
+    def ftp_reputation_report(self):
+        file_name = 'TDDSRepManagementReport_' + self.date_strftime() + '.txt'
+        stor = 'STOR ' + file_name
         session = ftplib.FTP(self.SERVER, self.USERNAME, self.PASSWORD)
         file = open(str(file_name),'rb')                  # file to send
         session.storbinary(str(stor), file)     # send the file
