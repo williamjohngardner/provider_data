@@ -7,6 +7,7 @@ import datetime
 import json
 
 from InstagramAPI import InstagramAPI
+from yelpapi import YelpAPI
 from transfer import Transfer
 
 
@@ -22,7 +23,8 @@ class SocialMediaPerformance:
         self.twitter_user_id = config.twitter_user_id
         self.instagram_username= config.instagram_username
         self.instagram_password = config.instagram_password
-
+        self.yelp_client_id = config.yelp_client_id
+        self.yelp_client_secret = config.yelp_client_secret
 
     def date_strftime(self):
 
@@ -43,22 +45,16 @@ class SocialMediaPerformance:
         graph = facebook.GraphAPI(access_token= self.fb_user_access_token, version="2.7")
 
         page = graph.get_object(id='419502714752257', fields='fan_count')
-        # print('Total Fan Count: ')
         follower_count = page['fan_count']
 
         posts = graph.request('419502714752257/posts?fields=id&limit=100')
-        # print('Total Post Count: ')
         total_posts = len(posts['data'])
 
         page_impressions_organic = graph.request('419502714752257/insights/page_impressions_organic')
         total_reach = page_impressions_organic['data'][0]['values'][0]['value']
-        # print('Total Reach: ')
-        # print(total_reach)
 
         page_consumptions = graph.request('419502714752257/insights/page_consumptions?date_preset=yesterday')
         total_engagement = page_consumptions['data'][0]['values'][0]['value']
-        # print('Total Engagement: ')
-        # print(total_engagement)
 
         # post_ids = posts['data']
         # for i in post_ids:
@@ -94,8 +90,6 @@ class SocialMediaPerformance:
         follower_count = user.followers_count
         total_posts = user.statuses_count       #need to figure out how to filter status count by specific day
         total_reach = user.followers_count
-        # newest_retweet = api.GetRetweetsOfMe(count=1)
-        # tweet = newest_retweet.index('ScreenName')
         retweets = api.GetRetweetsOfMe(count=100)
         replies = api.GetReplies()
         mentions = api.GetMentions()
@@ -131,9 +125,24 @@ class SocialMediaPerformance:
         return self.instagram_social_output
 
 
+    def yelp_api(self):
+
+        api = YelpAPI(self.yelp_client_id, self.yelp_client_secret)
+
+        average_rating = api.reviews_query(id=['tustin-toyota-tustin-2'])
+        print(average_rating)
+        total_positive = None
+        total_negative = None
+        total_reviews = None
+        total_dealer_responses = None
+
+        # self.yelp_reputation_output = 'Dealer Code: \t' + str(self.dealer_code) + '\nChannel: \tYelp\nTotal Average Rating: \t' + str(average_rating) + '\nTotal Positive: \t' + str(total_positive) + '\nTotal Negative: \t' + str(total_negative) + '\nTotal Reviews: \t' + str(total_reviews) + '\nTotal Dealer Responses: \t' + str(total_dealer_responses)
+        # return self.yelp_reputation_output
+
+
     def social_activity_report(self):
 
-        self.social_activity = str(self.facebook_api()) + '\n' + str(self.twitter_api())
+        self.social_activity = str(self.facebook_api()) + '\n' + str(self.twitter_api()) + '\n' + str(self.instagram_api())
         return self.social_activity
 
 
@@ -146,14 +155,28 @@ class SocialMediaPerformance:
         # return self.file_name
 
 
+    def reputation_management_report(self):
+
+        self.reputation_management = str(self.yelp_api())
+        return self.reputation_management
+
+
+    def reputation_management_report_output(self):
+
+        self.file_name = '“TDDSRepManagementReport_' + self.date_strftime() + '.txt'
+        output = open(self.file_name, 'w')
+        output.write('Date: ' + str(self.todays_date()) + '\n' + str(self.social_activity_report()))
+        output.close()
+
+
 if __name__ == "__main__":
     social = SocialMediaPerformance()
     print(social.todays_date())
-    social.twitter_api()
-    # social.social_activity_report()
-    social.facebook_api()
+    # social.twitter_api()
+    # social.facebook_api()
     # social.instagram_api()
+    # social.yelp_api()
 
-    social.social_activity_report_output()
+    # social.social_activity_report_output()
     # send = Transfer()
     # send.ftp()
