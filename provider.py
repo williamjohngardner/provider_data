@@ -58,23 +58,14 @@ class SocialMediaPerformance:
         page_consumptions = graph.request('140202782671268/insights/page_consumptions?date_preset=yesterday') #This is pulling in yesterday's data.
         total_engagement = page_consumptions['data'][0]['values'][0]['value']
 
-        # post_ids = posts['data']
-        # for i in post_ids:
-        #     share_ids = i['id']
-        #     for c in share_ids:
-        #         shares = graph.request(str(share_ids) + '?fields=shares.summary(true)')
-        #     shares_json = json.dumps(shares)
-        #     print(shares_json['id'])
-            # for j in shares_json:
-            #     if shares_json['shares']:
-            #         print(j)
-                    # total_shares += j['shares']['count']
-        # print('Total Shares: ')
-        # print(total_shares)
-            # for j in shares.keys():
-            #     if j == 'shares':
-            #         print(j)
-        total_advocacy = None
+        total_shares = []
+        post_ids = posts['data']
+        for i in post_ids:
+            post_id = i['id']
+            shares = graph.request(str(post_id) + '?fields=shares.summary(true)')
+            count = shares.get('shares',{}).get('count',0)
+            total_shares.append(count)
+        total_advocacy = sum(total_shares)
 
         self.facebook_social_output = 'Dealer Code: \t' + str(self.dealer_code) + '\nChannel: \tFacebook\nTotal Follower Count: \t' + str(follower_count) + '\nTotal Posts: \t' + str(total_posts) + '\nTotal Reach: \t' + str(total_reach) + '\nTotal Engagement: \t' + str(total_engagement) + '\nTotal Advocacy: \t' + str(total_advocacy)
         return self.facebook_social_output
@@ -206,11 +197,11 @@ if __name__ == "__main__":
     print(social.todays_date())
     # social.twitter_api()
     # social.facebook_api()
-    print(social.facebook_reputation())
+    # print(social.facebook_reputation())
     # social.instagram_api()
     # social.yelp_api()
 
-    # social.social_activity_report_output()
+    social.social_activity_report_output()
     # social.reputation_management_report_output()
     # send = Transfer()
     # send.ftp_social_report()
