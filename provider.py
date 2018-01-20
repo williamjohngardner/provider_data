@@ -16,6 +16,7 @@ class SocialMediaPerformance:
     def __init__(self):
         self.dealer_code = config.dealer_code
         self.fb_user_access_token = config.fb_user_access_token
+        self.fb_page_access_token = config.fb_page_access_token
         self.fb_dealer_id = config.fb_dealer_id
         self.twitter_consumer_key = config.twitter_consumer_key
         self.twitter_consumer_secret = config.twitter_consumer_secret
@@ -47,21 +48,15 @@ class SocialMediaPerformance:
 
         graph = facebook.GraphAPI(access_token= self.fb_user_access_token, version="2.7")
 
-        page = graph.get_object(id=self.fb_dealer_id)
-        print(page)
-        follower_count = graph.request('140202782671268/insights/page_fans')
-        print('Follower Count: ')
-        pprint.pprint(follower_count)
-        # posts = graph.request('939171412788689/posts?fields=id&limit=100')
-        # total_posts = len(posts['data'])
-        #
-        # page_impressions_organic = graph.request('939171412788689/insights/page_impressions_organic')
-        # # total_reach = page_impressions_organic['data'][0]['values'][0]['value']
-        #
-        page_consumptions = graph.request('140202782671268/insights/page_consumptions?date_preset=yesterday')
-        print('Total Engagement: ')
-        pprint.pprint(page_consumptions)
-        # total_engagement = page_consumptions['data'][0]['values'][0]['value']
+        page = graph.request('140202782671268/posts')
+        page_fans = graph.request('140202782671268/insights/page_fans')
+        follower_count = page_fans['data'][0]['values'][1]['value']
+        posts = graph.request('140202782671268/posts?date_preset=yesterday') #pulls 25 most recent posts and is not filtering by date
+        total_posts = len(posts['data'])
+        page_impressions_organic = graph.request('140202782671268/insights/page_impressions_organic')
+        total_reach = page_impressions_organic['data'][0]['values'][1]['value']
+        page_consumptions = graph.request('140202782671268/insights/page_consumptions?date_preset=yesterday') #This is pulling in yesterday's data.
+        total_engagement = page_consumptions['data'][0]['values'][0]['value']
 
         # post_ids = posts['data']
         # for i in post_ids:
@@ -81,8 +76,20 @@ class SocialMediaPerformance:
             #         print(j)
         total_advocacy = None
 
-        # self.facebook_social_output = 'Dealer Code: \t' + str(self.dealer_code) + '\nChannel: \tFacebook\nTotal Follower Count: \t' + str(follower_count) + '\nTotal Posts: \t' + str(total_posts) + '\nTotal Reach: \t' + str(total_reach) + '\nTotal Engagement: \t' + str(total_engagement) + '\nTotal Advocacy: \t' + str(total_advocacy)
-        # return self.facebook_social_output
+        self.facebook_social_output = 'Dealer Code: \t' + str(self.dealer_code) + '\nChannel: \tFacebook\nTotal Follower Count: \t' + str(follower_count) + '\nTotal Posts: \t' + str(total_posts) + '\nTotal Reach: \t' + str(total_reach) + '\nTotal Engagement: \t' + str(total_engagement) + '\nTotal Advocacy: \t' + str(total_advocacy)
+        return self.facebook_social_output
+
+    def facebook_reputation(self):
+
+        graph = facebook.GraphAPI(access_token= self.fb_page_access_token, version="2.7")
+
+        average_rating = graph.request('140202782671268/ratings')
+        pprint.pprint(average_rating)
+        # total_positive = graph.request('140202782671268/insights/page_positive_feedback')
+        # pprint.pprint(total_positive)
+        page_negative_feedback = graph.request('140202782671268/insights/page_negative_feedback')
+        total_negative = page_negative_feedback['data'][0]['values'][1]['value']
+        pprint.pprint(total_negative)
 
 
     def twitter_api(self):
@@ -198,7 +205,8 @@ if __name__ == "__main__":
     social = SocialMediaPerformance()
     print(social.todays_date())
     # social.twitter_api()
-    print(social.facebook_api())
+    # social.facebook_api()
+    print(social.facebook_reputation())
     # social.instagram_api()
     # social.yelp_api()
 
