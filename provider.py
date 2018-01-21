@@ -9,6 +9,7 @@ import pprint
 
 from InstagramAPI import InstagramAPI
 from transfer import Transfer
+# from datetime import date, timedelta
 
 
 class SocialMediaPerformance:
@@ -43,6 +44,11 @@ class SocialMediaPerformance:
         now = now.strftime("%m/%d/%Y")
         return now
 
+    def yesterdays_date(self):
+
+        yesterday = datetime.datetime.now() - datetime.timedelta(days=1)
+        yesterday.strftime('%d+%B+%Y')
+        return yesterday
 
     def facebook_api(self):
 
@@ -51,7 +57,7 @@ class SocialMediaPerformance:
         page = graph.request('140202782671268/posts')
         page_fans = graph.request('140202782671268/insights/page_fans')
         follower_count = page_fans['data'][0]['values'][1]['value']
-        posts = graph.request('140202782671268/posts?date_preset=yesterday') #pulls 25 most recent posts and is not filtering by date
+        posts = graph.request('140202782671268/posts?since=' + str(self.yesterdays_date())) #pulls 25 most recent posts and is not filtering by date
         total_posts = len(posts['data'])
         page_impressions_organic = graph.request('140202782671268/insights/page_impressions_organic')
         total_reach = page_impressions_organic['data'][0]['values'][1]['value']
@@ -74,13 +80,30 @@ class SocialMediaPerformance:
 
         graph = facebook.GraphAPI(access_token= self.fb_page_access_token, version="2.7")
 
-        average_rating = graph.request('140202782671268/ratings')
-        pprint.pprint(average_rating)
-        # total_positive = graph.request('140202782671268/insights/page_positive_feedback')
-        # pprint.pprint(total_positive)
+        ratings = graph.request('140202782671268/ratings?since=' + str(self.yesterdays_date()))
+
+        all_ratings = graph.request('140202782671268/ratings')
+        total_ratings = []
+        while(True):
+            try:
+                for rating in all_ratings['data']:
+                    total_ratings.append(rating['rating'])
+                all_ratings = graph.request(all_ratings['paging']['next'])
+            except KeyError:
+                break
+        average_rating = sum(total_ratings)/len(total_ratings)
+        total_positive_by_type = graph.request('140202782671268/insights/page_positive_feedback_by_type')
+        total_positive_values = total_positive_by_type['data'][0]['values'][1]['value']
+        total_positive = 0
+        for i in total_positive_values.values():
+            total_positive += i
         page_negative_feedback = graph.request('140202782671268/insights/page_negative_feedback')
         total_negative = page_negative_feedback['data'][0]['values'][1]['value']
-        pprint.pprint(total_negative)
+        total_reviews = len(ratings['data'])
+        total_dealer_responses = None
+
+        self.facebook_reputation_output = 'Dealer Code: \t' + str(self.dealer_code) + '\nChannel: \tFacebook\nAverage Rating: \t' + str(average_rating) + '\nTotal Positive: \t' + str(total_positive) + '\nTotal Negative: \t' + str(total_negative) + '\nTotal Reviews: \t' + str(total_reviews) + '\nTotal Dealer Responses: \t' + str(total_dealer_responses)
+        return self.facebook_reputation_output
 
 
     def twitter_api(self):
@@ -180,7 +203,7 @@ class SocialMediaPerformance:
 
     def reputation_management_report(self):
 
-        self.reputation_management = str(self.yelp_api())
+        self.reputation_management = str(self.facebook_reputation()) + str(self.yelp_api())
         return self.reputation_management
 
 
@@ -197,11 +220,11 @@ if __name__ == "__main__":
     print(social.todays_date())
     # social.twitter_api()
     # social.facebook_api()
-    # print(social.facebook_reputation())
+    print(social.facebook_reputation())
     # social.instagram_api()
     # social.yelp_api()
 
-    social.social_activity_report_output()
+    # social.social_activity_report_output()
     # social.reputation_management_report_output()
     # send = Transfer()
     # send.ftp_social_report()
