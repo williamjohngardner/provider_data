@@ -7,7 +7,7 @@ import datetime
 import json
 import pprint
 
-# from InstagramAPI import InstagramAPI
+from InstagramAPI import InstagramAPI
 from transfer import Transfer
 
 
@@ -165,10 +165,7 @@ class SocialMediaPerformance:
         url_reviews = 'https://api.yelp.com/v3/businesses/tustin-toyota-tustin/reviews?since=' + str(self.yesterdays_date())
         url_business = 'https://api.yelp.com/v3/businesses/tustin-toyota-tustin-2'
         headers = {'Authorization': 'bearer %s' % access_token}
-        params = {'location': 'Tustin',
-                  'term': 'Toyota',
-                  'sort_by': 'rating'
-                 }
+        params = {'location': 'Tustin', 'term': 'Toyota', 'sort_by': 'rating'}
 
         resp = requests.get(url=url, params=params, headers=headers)
         review_resp = requests.get(url=url_reviews, headers=headers)
@@ -178,7 +175,7 @@ class SocialMediaPerformance:
         total_reviews = review_resp.json()
         reviews_by_date = []
         for review in total_reviews['reviews']:
-            if review['time_created'][0:10] == '2018-01-17':
+            if review['time_created'][0:10] == str(self.yesterdays_date()):
                 reviews_by_date.append(review)
             else:
                 break
@@ -196,7 +193,7 @@ class SocialMediaPerformance:
                 negative.append(rating)
         total_positive = len(positive)
         total_negative = len(negative)
-        total_reviews = resp.json()['businesses'][2]['review_count']
+        total_reviews = len(reviews_by_date)
         total_dealer_responses = None
 
 
@@ -206,7 +203,7 @@ class SocialMediaPerformance:
 
     def social_activity_report(self):
 
-        self.social_activity = str(self.facebook_api()) + '\n' + str(self.twitter_api())
+        self.social_activity = str(self.facebook_api()) + '\n' + str(self.twitter_api()) + '\n' + str(self.instagram_api())
         return self.social_activity
 
 
@@ -240,10 +237,10 @@ if __name__ == "__main__":
     # social.facebook_api()
     # social.facebook_reputation()
     # social.instagram_api()
-    print(social.yelp_api())
+    # social.yelp_api()
 
-    # social.social_activity_report_output()
-    # social.reputation_management_report_output()
-    # send = Transfer()
-    # send.ftp_social_report()
-    # send.ftp_reputation_report()
+    social.social_activity_report_output()
+    social.reputation_management_report_output()
+    send = Transfer()
+    send.ftp_social_report()
+    send.ftp_reputation_report()
