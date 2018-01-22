@@ -7,9 +7,8 @@ import datetime
 import json
 import pprint
 
-from InstagramAPI import InstagramAPI
+# from InstagramAPI import InstagramAPI
 from transfer import Transfer
-# from datetime import date, timedelta
 
 
 class SocialMediaPerformance:
@@ -101,15 +100,6 @@ class SocialMediaPerformance:
             except KeyError:
                 break
         average_rating = sum(total_ratings)/len(total_ratings)
-        # total_positive_by_type = graph.request('140202782671268/insights/page_positive_feedback_by_type')
-        # total_positive_values = total_positive_by_type['data'][0]['values'][1]['value']
-        total_positive = 0
-
-        # for i in total_positive_values.values():
-        #     total_positive += i
-        total_negative = 0
-        # page_negative_feedback = graph.request('140202782671268/insights/page_negative_feedback')
-        # total_negative = page_negative_feedback['data'][0]['values'][1]['value']
         total_reviews = len(ratings['data'])
         dealer_responses = graph.request('140202782671268/saved_message_responses?since=' + str(self.yesterdays_date()))
         total_dealer_responses = len(dealer_responses['data'])
@@ -172,7 +162,7 @@ class SocialMediaPerformance:
         token = requests.post('https://api.yelp.com/oauth2/token', data=data)
         access_token = token.json()['access_token']
         url = 'https://api.yelp.com/v3/businesses/search'
-        url_reviews = 'https://api.yelp.com/v3/businesses/tustin-toyota-tustin/reviews'
+        url_reviews = 'https://api.yelp.com/v3/businesses/tustin-toyota-tustin/reviews?since=' + str(self.yesterdays_date())
         url_business = 'https://api.yelp.com/v3/businesses/tustin-toyota-tustin-2'
         headers = {'Authorization': 'bearer %s' % access_token}
         params = {'location': 'Tustin',
@@ -185,10 +175,27 @@ class SocialMediaPerformance:
         business_resp = requests.get(url=url_business, headers=headers)
 
         average_rating = resp.json()['businesses'][2]['rating']
-        review_times = review_resp.json()['reviews'][0]['time_created']
-        total_reviews = review_resp.json()['reviews'][0]
-        total_positive = None
-        total_negative = None
+        total_reviews = review_resp.json()
+        reviews_by_date = []
+        for review in total_reviews['reviews']:
+            if review['time_created'][0:10] == '2018-01-17':
+                reviews_by_date.append(review)
+            else:
+                break
+
+        review_times = reviews_by_date
+        ratings = []
+        for time in review_times:
+            ratings.append(time['rating'])
+        positive = []
+        negative = []
+        for rating in ratings:
+            if rating >= 4:
+                positive.append(rating)
+            else:
+                negative.append(rating)
+        total_positive = len(positive)
+        total_negative = len(negative)
         total_reviews = resp.json()['businesses'][2]['review_count']
         total_dealer_responses = None
 
@@ -199,7 +206,7 @@ class SocialMediaPerformance:
 
     def social_activity_report(self):
 
-        self.social_activity = str(self.facebook_api()) + '\n' + str(self.twitter_api()) + '\n' + str(self.instagram_api())
+        self.social_activity = str(self.facebook_api()) + '\n' + str(self.twitter_api())
         return self.social_activity
 
 
@@ -230,10 +237,10 @@ if __name__ == "__main__":
     social = SocialMediaPerformance()
     print(social.todays_date())
     # social.twitter_api()
-    print(social.facebook_api())
-    print(social.facebook_reputation())
+    # social.facebook_api()
+    # social.facebook_reputation()
     # social.instagram_api()
-    # social.yelp_api()
+    print(social.yelp_api())
 
     # social.social_activity_report_output()
     # social.reputation_management_report_output()
