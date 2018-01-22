@@ -17,7 +17,8 @@ class SocialMediaPerformance:
     def __init__(self):
         self.dealer_code = config.dealer_code
         self.fb_user_access_token = config.fb_user_access_token
-        self.fb_page_access_token = config.fb_page_access_token
+        self.permanant_access_token = config.permanant_access_token
+        self.fb_page_access_token = config.fb_page_access_token_temp
         self.fb_dealer_id = config.fb_dealer_id
         self.twitter_consumer_key = config.twitter_consumer_key
         self.twitter_consumer_secret = config.twitter_consumer_secret
@@ -63,7 +64,6 @@ class SocialMediaPerformance:
         total_reach = page_impressions_organic['data'][0]['values'][1]['value']
         page_consumptions = graph.request('140202782671268/insights/page_consumptions?date_preset=yesterday') #This is pulling in yesterday's data.
         total_engagement = page_consumptions['data'][0]['values'][0]['value']
-
         total_shares = []
         post_ids = posts['data']
         for i in post_ids:
@@ -72,6 +72,15 @@ class SocialMediaPerformance:
             count = shares.get('shares',{}).get('count',0)
             total_shares.append(count)
         total_advocacy = sum(total_shares)
+
+        total_positive_by_type = graph.request('140202782671268/insights/page_positive_feedback_by_type')
+        total_positive_values = total_positive_by_type['data'][0]['values'][1]['value']
+        self.total_positive = 0
+        for i in total_positive_values.values():
+            self.total_positive += i
+
+        page_negative_feedback = graph.request('140202782671268/insights/page_negative_feedback')
+        self.total_negative = page_negative_feedback['data'][0]['values'][1]['value']
 
         self.facebook_social_output = 'Dealer Code: \t' + str(self.dealer_code) + '\nChannel: \tFacebook\nTotal Follower Count: \t' + str(follower_count) + '\nTotal Posts: \t' + str(total_posts) + '\nTotal Reach: \t' + str(total_reach) + '\nTotal Engagement: \t' + str(total_engagement) + '\nTotal Advocacy: \t' + str(total_advocacy)
         return self.facebook_social_output
@@ -92,17 +101,20 @@ class SocialMediaPerformance:
             except KeyError:
                 break
         average_rating = sum(total_ratings)/len(total_ratings)
-        total_positive_by_type = graph.request('140202782671268/insights/page_positive_feedback_by_type')
-        total_positive_values = total_positive_by_type['data'][0]['values'][1]['value']
+        # total_positive_by_type = graph.request('140202782671268/insights/page_positive_feedback_by_type')
+        # total_positive_values = total_positive_by_type['data'][0]['values'][1]['value']
         total_positive = 0
-        for i in total_positive_values.values():
-            total_positive += i
-        page_negative_feedback = graph.request('140202782671268/insights/page_negative_feedback')
-        total_negative = page_negative_feedback['data'][0]['values'][1]['value']
-        total_reviews = len(ratings['data'])
-        total_dealer_responses = None
 
-        self.facebook_reputation_output = 'Dealer Code: \t' + str(self.dealer_code) + '\nChannel: \tFacebook\nAverage Rating: \t' + str(average_rating) + '\nTotal Positive: \t' + str(total_positive) + '\nTotal Negative: \t' + str(total_negative) + '\nTotal Reviews: \t' + str(total_reviews) + '\nTotal Dealer Responses: \t' + str(total_dealer_responses)
+        # for i in total_positive_values.values():
+        #     total_positive += i
+        total_negative = 0
+        # page_negative_feedback = graph.request('140202782671268/insights/page_negative_feedback')
+        # total_negative = page_negative_feedback['data'][0]['values'][1]['value']
+        total_reviews = len(ratings['data'])
+        dealer_responses = graph.request('140202782671268/saved_message_responses?since=' + str(self.yesterdays_date()))
+        total_dealer_responses = len(dealer_responses['data'])
+
+        self.facebook_reputation_output = 'Dealer Code: \t' + str(self.dealer_code) + '\nChannel: \tFacebook\nAverage Rating: \t' + str(average_rating) + '\nTotal Positive: \t' + str(self.total_positive) + '\nTotal Negative: \t' + str(self.total_negative) + '\nTotal Reviews: \t' + str(total_reviews) + '\nTotal Dealer Responses: \t' + str(total_dealer_responses)
         return self.facebook_reputation_output
 
 
@@ -134,7 +146,6 @@ class SocialMediaPerformance:
         api = InstagramAPI(self.instagram_username, self.instagram_password)
 
         api.login() # login
-
         username_id = api.username_id   #calls Instagram username ID
         follower_count = len(api.getTotalSelfFollowers())   #returns the length of the list of total followers
         total_posts = len(api.getTotalSelfUserFeed(username_id))    #returns the length of the list of total posts
@@ -147,8 +158,8 @@ class SocialMediaPerformance:
             engagement_likes += comment['like_count']
         total_engagement = engagement_comments + engagement_likes
         total_advocacy = total_engagement
-
         api.logout() #logout
+
         self.instagram_social_output = 'Dealer Code: \t' + str(self.dealer_code) + '\nChannel: \tInstagram\nTotal Follower Count: \t' + str(follower_count) + '\nTotal Posts: \t' + str(total_posts) + '\nTotal Reach: \t' + str(total_reach) + '\nTotal Engagement: \t' + str(total_engagement) + '\nTotal Advocacy: \t' + str(total_advocacy)
         return self.instagram_social_output
 
@@ -203,7 +214,7 @@ class SocialMediaPerformance:
 
     def reputation_management_report(self):
 
-        self.reputation_management = str(self.facebook_reputation()) + str(self.yelp_api())
+        self.reputation_management = str(self.facebook_reputation()) + '\n' + str(self.yelp_api())
         return self.reputation_management
 
 
@@ -219,7 +230,7 @@ if __name__ == "__main__":
     social = SocialMediaPerformance()
     print(social.todays_date())
     # social.twitter_api()
-    # social.facebook_api()
+    print(social.facebook_api())
     print(social.facebook_reputation())
     # social.instagram_api()
     # social.yelp_api()
