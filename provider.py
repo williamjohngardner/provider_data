@@ -30,6 +30,7 @@ class SocialMediaPerformance:
         self.yelp_client_secret = config.yelp_client_secret
         self.yelp_username = config.yelp_username
         self.yelp_password = config.yelp_password
+        self.google_api_key = config.google_api_key
 
     def date_strftime(self):
 
@@ -52,7 +53,7 @@ class SocialMediaPerformance:
 
     def facebook_api(self):
 
-        graph = facebook.GraphAPI(access_token= self.fb_user_access_token, version="2.7")
+        graph = facebook.GraphAPI(access_token= self.fb_page_access_token, version="2.7")
 
         page = graph.request('140202782671268/posts')
         page_fans = graph.request('140202782671268/insights/page_fans')
@@ -117,6 +118,10 @@ class SocialMediaPerformance:
 
         user = api.GetUser(self.twitter_user_id)
         statuses = api.GetUserTimeline(self.twitter_user_id)
+        status_list = []
+        for status in enumerate(statuses):
+            status_list.append(status)
+            print(status_list)
         follower_count = user.followers_count
         total_posts = user.statuses_count       #need to figure out how to filter status count by specific day
         total_reach = user.followers_count
@@ -127,8 +132,8 @@ class SocialMediaPerformance:
         total_engagement = len(replies) + len(retweets) + len(mentions) + len(favorites)
         total_advocacy = len(retweets)
 
-        self.twitter_social_output = 'Dealer Code: \t' + str(self.dealer_code) + '\nChannel: \tTwitter\nTotal Follower Count: \t' + str(follower_count) + '\nTotal Posts: \t' + str(total_posts) + '\nTotal Reach: \t' + str(total_reach) + '\nTotal Engagement: \t' + str(total_engagement) + '\nTotal Advocacy: \t' + str(total_advocacy)
-        return self.twitter_social_output
+        # self.twitter_social_output = 'Dealer Code: \t' + str(self.dealer_code) + '\nChannel: \tTwitter\nTotal Follower Count: \t' + str(follower_count) + '\nTotal Posts: \t' + str(total_posts) + '\nTotal Reach: \t' + str(total_reach) + '\nTotal Engagement: \t' + str(total_engagement) + '\nTotal Advocacy: \t' + str(total_advocacy)
+        # return self.twitter_social_output
 
 
     def instagram_api(self):
@@ -201,6 +206,21 @@ class SocialMediaPerformance:
         return self.yelp_reputation_output
 
 
+    def google_api(self):
+
+        place_id = requests.get('https://maps.googleapis.com/maps/api/place/textsearch/json?query=tustin+toyota&key=' + str(self.google_api_key))
+        average_rating = place_id.json()['results'][1]['rating']
+        total_positive = 0
+        total_negative = 0
+        total_reviews = 0
+        total_dealer_responses = 0
+        # place_details = requests.get('https://maps.googleapis.com/maps/api/place/details/json?placeid=ChIJvaLhO3bc3IAR4Mb6KYI8bRQ&key=' + str(self.google_api_key))
+        # pprint.pprint(place_details.json())
+
+        self.google_reputation_output = 'Dealer Code: \t' + str(self.dealer_code) + '\nChannel: \tGoogle+\nTotal Average Rating: \t' + str(average_rating) + '\nTotal Positive: \t' + str(total_positive) + '\nTotal Negative: \t' + str(total_negative) + '\nTotal Reviews: \t' + str(total_reviews) + '\nTotal Dealer Responses: \t' + str(total_dealer_responses)
+        return self.google_reputation_output
+
+
     def social_activity_report(self):
 
         self.social_activity = str(self.facebook_api()) + '\n' + str(self.twitter_api()) + '\n' + str(self.instagram_api())
@@ -218,7 +238,7 @@ class SocialMediaPerformance:
 
     def reputation_management_report(self):
 
-        self.reputation_management = str(self.facebook_reputation()) + '\n' + str(self.yelp_api())
+        self.reputation_management = str(self.facebook_reputation()) + '\n' + str(self.yelp_api()) + '\n' + str(self.google_api())
         return self.reputation_management
 
 
@@ -233,14 +253,15 @@ class SocialMediaPerformance:
 if __name__ == "__main__":
     social = SocialMediaPerformance()
     print(social.todays_date())
-    # social.twitter_api()
+    print(social.twitter_api())
     # social.facebook_api()
     # social.facebook_reputation()
     # social.instagram_api()
     # social.yelp_api()
-
-    social.social_activity_report_output()
-    social.reputation_management_report_output()
-    send = Transfer()
-    send.ftp_social_report()
-    send.ftp_reputation_report()
+    # social.google_api()
+    #
+    # social.social_activity_report_output()
+    # social.reputation_management_report_output()
+    # send = Transfer()
+    # send.ftp_social_report()
+    # send.ftp_reputation_report()
