@@ -1,10 +1,11 @@
-facebook-sdk
-python-twitter
-InstagramAPI
-requests
+facebook-sdk                http://facebook-sdk.readthedocs.io/en/latest/install.html
+python-twitter              https://python-twitter.readthedocs.io/en/latest/installation.html
+InstagramAPI                https://github.com/LevPasha/Instagram-API-python
+google-api-python-client    https://github.com/google/google-api-python-client
+requests                    http://docs.python-requests.org/en/master/
 os
 config
 datetime
 json
 pprint
-google-api-python-client
+ftplib

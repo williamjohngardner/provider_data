@@ -14,6 +14,9 @@ from transfer import Transfer
 class SocialMediaPerformance:
 
     def __init__(self):
+        '''  The __init__ access tokens and credentials are being imported from the config.py module.
+        This file must be included in the root for the script to function'''
+
         self.dealer_code = config.dealer_code
         self.fb_user_access_token = config.fb_user_access_token
         self.permanant_access_token = config.permanant_access_token
@@ -32,7 +35,10 @@ class SocialMediaPerformance:
         self.yelp_password = config.yelp_password
         self.google_api_key = config.google_api_key
 
+
     def date_strftime(self):
+        ''' The date_strftime function is called to format the date on the file name
+        that is exported with each report. '''
 
         now = datetime.datetime.now()
         now = now.strftime("%m-%d-%y")
@@ -40,18 +46,27 @@ class SocialMediaPerformance:
 
 
     def todays_date(self):
+        ''' The todays_date function is called to print the date within each generated
+        report in the required format. '''
 
         now = datetime.datetime.now()
         now = now.strftime("%m/%d/%Y")
         return now
 
     def yesterdays_date(self):
+        ''' The yesterdays_date function is called in request strings to return
+        filtered api data from the previous day '''
 
         yesterday = datetime.datetime.now() - datetime.timedelta(days=1)
         yesterday.strftime('%d+%B+%Y')
         return yesterday
 
     def facebook_api(self):
+        ''' The facebook APIs do not yet have a permanant access token and a short
+        term page access token must be generated to run the script.  The permanant
+        access token can be generated for version 2
+
+        This report pulls data for the social media report '''
 
         graph = facebook.GraphAPI(access_token= self.fb_page_access_token, version="2.7")
 
@@ -86,6 +101,7 @@ class SocialMediaPerformance:
         return self.facebook_social_output
 
     def facebook_reputation(self):
+        ''' This report pulls data for the reputation management report '''
 
         graph = facebook.GraphAPI(access_token= self.fb_page_access_token, version="2.7")
 
@@ -121,9 +137,9 @@ class SocialMediaPerformance:
         status_list = []
         for status in enumerate(statuses):
             status_list.append(status)
-            print(status_list)
+            # print(status_list)
         follower_count = user.followers_count
-        total_posts = user.statuses_count       #need to figure out how to filter status count by specific day
+        total_posts = user.statuses_count
         total_reach = user.followers_count
         retweets = api.GetRetweetsOfMe(count=100)
         replies = api.GetReplies()
@@ -132,11 +148,15 @@ class SocialMediaPerformance:
         total_engagement = len(replies) + len(retweets) + len(mentions) + len(favorites)
         total_advocacy = len(retweets)
 
-        # self.twitter_social_output = 'Dealer Code: \t' + str(self.dealer_code) + '\nChannel: \tTwitter\nTotal Follower Count: \t' + str(follower_count) + '\nTotal Posts: \t' + str(total_posts) + '\nTotal Reach: \t' + str(total_reach) + '\nTotal Engagement: \t' + str(total_engagement) + '\nTotal Advocacy: \t' + str(total_advocacy)
-        # return self.twitter_social_output
+        self.twitter_social_output = 'Dealer Code: \t' + str(self.dealer_code) + '\nChannel: \tTwitter\nTotal Follower Count: \t' + str(follower_count) + '\nTotal Posts: \t' + str(total_posts) + '\nTotal Reach: \t' + str(total_reach) + '\nTotal Engagement: \t' + str(total_engagement) + '\nTotal Advocacy: \t' + str(total_advocacy)
+        return self.twitter_social_output
 
 
     def instagram_api(self):
+        ''' The Instagram API function uses a third party library rather than Facebook's Instagram
+        Graph API because Facebook required an extensive screen cast of your app before
+        they will approve API access.  This library was faster, but also requires
+        the ffmpeg dependency to be Brew installed after installation. '''
 
         api = InstagramAPI(self.instagram_username, self.instagram_password)
 
@@ -160,6 +180,8 @@ class SocialMediaPerformance:
 
 
     def yelp_api(self):
+        ''' Yelp does not currently offer any API endpoints that will return data
+        for the number of dealer responses on a given day. '''
 
         data = {'grant_type': 'client_credentials',
                 'client_id': self.yelp_client_id,
@@ -207,6 +229,9 @@ class SocialMediaPerformance:
 
 
     def google_api(self):
+        ''' Outside of the average rating metric, this data is currently manually scraped.
+        Google requires an approval process for Google My Business API access that
+        takes at least two weeks.  Access was requested on January 23, 2018'''
 
         place_id = requests.get('https://maps.googleapis.com/maps/api/place/textsearch/json?query=tustin+toyota&key=' + str(self.google_api_key))
         average_rating = place_id.json()['results'][1]['rating']
@@ -222,27 +247,30 @@ class SocialMediaPerformance:
 
 
     def social_activity_report(self):
+        ''' This function collects and formats data for the Social Media Activity Report '''
 
         self.social_activity = str(self.facebook_api()) + '\n' + str(self.twitter_api()) + '\n' + str(self.instagram_api())
         return self.social_activity
 
 
     def social_activity_report_output(self):
+        ''' This function writes the file for the Social Media Activity Report '''
 
         self.file_name = 'TDDSSocialActivityReport_' + self.date_strftime() + '.txt'
         output = open(self.file_name, 'w')
         output.write('Date: ' + str(self.todays_date()) + '\n' + str(self.social_activity_report()))
         output.close()
-        # return self.file_name
 
 
     def reputation_management_report(self):
+        ''' This function collects and formats data for the Reputation Management Report '''
 
         self.reputation_management = str(self.facebook_reputation()) + '\n' + str(self.yelp_api()) + '\n' + str(self.google_api())
         return self.reputation_management
 
 
     def reputation_management_report_output(self):
+        ''' This function writes the file for the Reputation Management Report '''
 
         self.file_name = 'TDDSRepManagementReport_' + self.date_strftime() + '.txt'
         output = open(self.file_name, 'w')
@@ -253,15 +281,16 @@ class SocialMediaPerformance:
 if __name__ == "__main__":
     social = SocialMediaPerformance()
     print(social.todays_date())
-    print(social.twitter_api())
+    # ---------  The following calls are for testing purposes.  The script runs with them commented out. -------------
+    # social.twitter_api()
     # social.facebook_api()
     # social.facebook_reputation()
     # social.instagram_api()
     # social.yelp_api()
     # social.google_api()
     #
-    # social.social_activity_report_output()
-    # social.reputation_management_report_output()
-    # send = Transfer()
-    # send.ftp_social_report()
-    # send.ftp_reputation_report()
+    social.social_activity_report_output()
+    social.reputation_management_report_output()
+    send = Transfer()
+    send.ftp_social_report()
+    send.ftp_reputation_report()
