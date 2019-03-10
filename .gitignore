@@ -1,8 +1,7 @@
 .envrc
 config.py
 __pycache__
-/Users/productnonproduct/Projects/provider_data/facebookenv
 *.pyc
 .direnv
 /Users/productnonproduct/Projects/provider_data/.direnv
-/Users/productnonproduct/Projects/provider_data/Instagram-API-python
+auth.json
